@@ -628,7 +628,7 @@ __maybe_unused int ksu_handle_execve_ksud(const char __user *filename_user,
 	return ksu_handle_execveat_ksud(AT_FDCWD, &filename_p, &argv, NULL, NULL);
 }
 
-#if defined(CONFIG_64BIT) && defined(CONFIG_COMPAT)Add commentMore actions
+#if defined(CONFIG_64BIT) && defined(CONFIG_COMPAT)
 __maybe_unused int ksu_handle_compat_execve_ksud(const char __user *filename_user,
 			const compat_uptr_t __user *__argv)
 {
