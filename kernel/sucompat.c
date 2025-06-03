@@ -29,8 +29,23 @@ extern void escape_to_root();
 
 bool ksu_sucompat_hook_state __read_mostly = true;
 
+static unsigned long current_user_stack_pointer_compat(void)
+{
+	struct pt_regs *regs = current_pt_regs();
+	if (regs)
+		return regs->sp; // return regs->uregs[ARM_sp]; -- for arm
+	else
+		return 0;
+}
+
 static void __user *userspace_stack_buffer(const void *d, size_t len)
 {
+	unsigned long addr = current->mm->start_stack;
+	unsigned long cusp = current_user_stack_pointer();
+	unsigned long cusp_compat = current_user_stack_pointer_compat();
+	
+	pr_info("%s: 'start_stack - len': %lx | cusp: %lx | arm64_cusp: %lx\n", __func__, addr, cusp, cusp_compat);
+
 	/* To avoid having to mmap a page in userspace, just write below the stack
    * pointer. */
 	char __user *p = (void __user *)current_user_stack_pointer() - len;
