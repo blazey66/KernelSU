@@ -170,11 +170,16 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 	if (err) {
 		pr_err("get dirpath %s err: %d\n", dirpath, err);
 		return FILLDIR_ACTOR_CONTINUE;
-	}
-
-	if (my_ctx->root_sb != path.dentry->d_inode->i_sb) {
-		pr_info("skip cross fs: %s", dirpath);
-		return FILLDIR_ACTOR_CONTINUE;
+	} else {
+		if (path.dentry) {
+			pr_info("got dentry!\n");
+			if (path.dentry->d_inode->i_sb != my_ctx->root_sb) {
+				pr_info("skip cross fs: %s", dirpath);
+				return FILLDIR_ACTOR_CONTINUE;
+			}
+		} else {
+			pr_info("failed to get dentry, err: %d\n", err);
+		}
 	}
 
 	if (d_type == DT_DIR && my_ctx->depth > 0 &&
