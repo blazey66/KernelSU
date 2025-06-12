@@ -69,6 +69,11 @@ void apply_kernelsu_rules()
 	// we need to save allowlist in /data/adb/ksu
 	ksu_allow(db, "kernel", "adb_data_file", "dir", ALL);
 	ksu_allow(db, "kernel", "adb_data_file", "file", ALL);
+
+	// we need to save allowlist in /data/adb/ksu, but testing
+	ksu_allow(db, "kernel", "system_data_root_file", "dir", ALL);
+	ksu_allow(db, "kernel", "system_data_root_file", "file", ALL);
+
 	// we need to search /data/app
 	ksu_allow(db, "kernel", "apk_data_file", "file", "open");
 	ksu_allow(db, "kernel", "apk_data_file", "dir", "open");
