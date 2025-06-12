@@ -155,39 +155,17 @@ void apply_kernelsu_rules()
 #define CMD_TYPE_CHANGE 8
 #define CMD_GENFSCON 9
 
-// keep it!
-extern bool ksu_is_compat __read_mostly;
-
-// armv7l kernel compat
-#ifdef CONFIG_64BIT
-#define usize	u64
-#else
-#define usize	u32
-#endif
-
+// sizeof(char *) is 8! s8 meant signed 8bits value!
 struct sepol_data {
-	u32 cmd;
-	u32 subcmd;
-	usize field_sepol1;
-	usize field_sepol2;
-	usize field_sepol3;
-	usize field_sepol4;
-	usize field_sepol5;
-	usize field_sepol6;
-	usize field_sepol7;
-};
-
-// ksud 32-bit on arm64 kernel
-struct __maybe_unused sepol_data_compat {
-	u32 cmd;
-	u32 subcmd;
-	u32 field_sepol1;
-	u32 field_sepol2;
-	u32 field_sepol3;
-	u32 field_sepol4;
-	u32 field_sepol5;
-	u32 field_sepol6;
-	u32 field_sepol7;
+	u32 cmd;		// cmd: u32,
+	u32 subcmd;		// subcmd: u32,
+	s8 field_sepol1;	// *const ffi::c_char,
+	s8 field_sepol2;	// *const ffi::c_char,
+	s8 field_sepol3;	// *const ffi::c_char,
+	s8 field_sepol4;	// *const ffi::c_char,
+	s8 field_sepol5;	// *const ffi::c_char,
+	s8 field_sepol6;	// *const ffi::c_char,
+	s8 field_sepol7;	// *const ffi::c_char,
 };
 
 static int get_object(char *buf, char __user *user_object, size_t buf_sz,
@@ -224,6 +202,7 @@ static void reset_avc_cache()
 	selinux_xfrm_notify_policyload();
 }
 
+extern bool ksu_is_compat __read_mostly;
 int handle_sepolicy(unsigned long arg3, void __user *arg4)
 {
 	if (!arg4) {
@@ -237,28 +216,22 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 	u32 cmd, subcmd;
 	char __user *sepol1, *sepol2, *sepol3, *sepol4, *sepol5, *sepol6, *sepol7;
 
+	struct sepol_data data;
+	if (copy_from_user(&data, arg4, sizeof(struct sepol_data))) {
+		pr_err("sepol: copy sepol_data failed.\n");
+		return -1;
+	}
+
 	if (unlikely(ksu_is_compat)) {
-		struct sepol_data_compat data_compat;
-		if (copy_from_user(&data_compat, arg4, sizeof(struct sepol_data_compat))) {
-			pr_err("sepol: copy sepol_data failed.\n");
-			return -1;
-		}
-		pr_info("sepol: running in compat mode!\n");
-		sepol1 = compat_ptr(data_compat.field_sepol1);
-		sepol2 = compat_ptr(data_compat.field_sepol2);
-		sepol3 = compat_ptr(data_compat.field_sepol3);
-		sepol4 = compat_ptr(data_compat.field_sepol4);
-		sepol5 = compat_ptr(data_compat.field_sepol5);
-		sepol6 = compat_ptr(data_compat.field_sepol6);
-		sepol7 = compat_ptr(data_compat.field_sepol7);
-		cmd = data_compat.cmd;
-		subcmd = data_compat.subcmd;
+		pr_info("%s: is compat!\n", __func__);
+		sepol1 = compat_ptr(data.field_sepol1);
+		sepol2 = compat_ptr(data.field_sepol2);
+		sepol3 = compat_ptr(data.field_sepol3);
+		sepol4 = compat_ptr(data.field_sepol4);
+		sepol5 = compat_ptr(data.field_sepol5);
+		sepol6 = compat_ptr(data.field_sepol6);
+		sepol7 = compat_ptr(data.field_sepol7);
 	} else {
-		struct sepol_data data;
-		if (copy_from_user(&data, arg4, sizeof(struct sepol_data))) {
-			pr_err("sepol: copy sepol_data failed.\n");
-			return -1;
-		}
 		sepol1 = data.field_sepol1;
 		sepol2 = data.field_sepol2;
 		sepol3 = data.field_sepol3;
@@ -266,9 +239,9 @@ int handle_sepolicy(unsigned long arg3, void __user *arg4)
 		sepol5 = data.field_sepol5;
 		sepol6 = data.field_sepol6;
 		sepol7 = data.field_sepol7;
-		cmd = data.cmd;
-		subcmd = data.subcmd;
 	}
+	cmd = data.cmd;
+	subcmd = data.subcmd;
 
 	rcu_read_lock();
 
