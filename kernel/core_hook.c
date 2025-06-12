@@ -182,6 +182,11 @@ void escape_to_root(void)
 	setup_groups(profile, cred);
 
 	commit_creds(cred);
+	
+	if (cred) {
+		pr_info("%s: Assigning cred to NULL!\n", __func__);
+		cred = NULL;
+	}
 
 	// Refer to kernel/seccomp.c: seccomp_set_mode_strict
 	// When disabling Seccomp, ensure that current->sighand->siglock is held during the operation.
