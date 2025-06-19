@@ -43,7 +43,9 @@ void apply_kernelsu_rules()
 		pr_info("SELinux permissive or disabled, apply rules!\n");
 	}
 	
+	static bool use_rcu = false;
 	if (preemptible()) {
+		use_rcu = true;
 		rcu_read_lock();
 	} else
 		smp_mb();
@@ -140,7 +142,7 @@ void apply_kernelsu_rules()
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
-	if (preemptible()) {
+	if (preemptible() && use_rcu) {
 		rcu_read_unlock();
 	} else
 		smp_mb();
