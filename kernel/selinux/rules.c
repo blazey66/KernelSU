@@ -1,7 +1,6 @@
 #include <linux/uaccess.h>
 #include <linux/types.h>
 #include <linux/version.h>
-#include <linux/spinlock.h>
 
 #include "../klog.h" // IWYU pragma: keep
 #include "selinux.h"
@@ -42,9 +41,8 @@ void apply_kernelsu_rules()
 	if (!getenforce()) {
 		pr_info("SELinux permissive or disabled, apply rules!\n");
 	}
-
-	DEFINE_SPINLOCK(ksu_apply_rules_spinlock);
-	spin_lock(&ksu_apply_rules_spinlock);
+	
+	smp_mb();
 
 	struct policydb *db = get_policydb();
 
@@ -138,7 +136,7 @@ void apply_kernelsu_rules()
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
-	spin_unlock(&ksu_apply_rules_spinlock);
+	smp_mb();
 }
 
 #define MAX_SEPOL_LEN 128
