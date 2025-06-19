@@ -142,7 +142,7 @@ void apply_kernelsu_rules()
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
-	if (preemptible() && use_rcu) {
+	if (use_rcu) {
 		rcu_read_unlock();
 	} else
 		smp_mb();
