@@ -43,7 +43,7 @@ void apply_kernelsu_rules()
 		pr_info("SELinux permissive or disabled, apply rules!\n");
 	}
 
-	DEFINE_SPINLOCK(ksu_apply_rules_spinlock);Add commentMore actions
+	DEFINE_SPINLOCK(ksu_apply_rules_spinlock);
 	spin_lock(&ksu_apply_rules_spinlock);
 
 	struct policydb *db = get_policydb();
