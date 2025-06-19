@@ -1,5 +1,5 @@
 use crate::defs::{KSU_MOUNT_SOURCE, NO_MOUNT_PATH, NO_TMPFS_PATH};
-use crate::module::{handle_updated_modules, prune_modules};
+use crate::module::handle_updated_modules;
 use crate::{assets, defs, ksucalls, restorecon, utils};
 use anyhow::{Context, Result};
 use log::{info, warn};
@@ -62,10 +62,6 @@ pub fn on_post_data_fs() -> Result<()> {
             warn!("disable all modules failed: {}", e);
         }
         return Ok(());
-    }
-
-    if let Err(e) = prune_modules() {
-        warn!("prune modules failed: {}", e);
     }
 
     if let Err(e) = handle_updated_modules() {
