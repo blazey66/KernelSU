@@ -63,8 +63,10 @@ endif
 KSU_HAS_DEVPTS_INODE := $(shell grep -q "ksu_handle_devpts" $(srctree)/fs/devpts/inode.c; echo $$?)
 KSU_HAS_PTS_UNIX98 := $(shell grep -q "ksu_handle_devpts" $(srctree)/drivers/tty/pty.c; echo $$?)
 
-# It's impossible to have them both! neither KSU_HAS_DEVPTS_INODE/PTS_UNIX98 will detect 1 value!
-# If both of them weren't exist, KSU_HAS_DEVPTS_HANDLER value gonna be 2.
+# Codes:
+# - 2: Both of these hooks are not exist.
+# - 1: One of them detected.
+# - 0: Both of them exist (impossible scenario)
 $(eval KSU_DEVPTS_HANDLER_EXIST=$(shell expr $(KSU_HAS_DEVPTS_INODE) + $(KSU_HAS_PTS_UNIX98)))
 ifeq ($(KSU_DEVPTS_HANDLER_EXIST),1)
 ccflags-y += -DKSU_HAS_DEVPTS_HANDLER
@@ -75,7 +77,7 @@ ifeq ($(shell grep -q "CONFIG_KDP_CRED" $(srctree)/kernel/cred.c; echo $$?),0)
 ccflags-y += -DSAMSUNG_UH_DRIVER_EXIST
 endif
 
-# Samsung SELinux Porting
+# Checks Samsung SELinux Porting
 ifeq ($(shell grep -q "SEC_SELINUX_PORTING_COMMON" $(srctree)/security/selinux/avc.c; echo $$?),0)
 ccflags-y += -DSAMSUNG_SELINUX_PORTING
 endif
