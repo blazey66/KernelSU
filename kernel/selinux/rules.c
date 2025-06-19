@@ -1,12 +1,13 @@
 #include <linux/uaccess.h>
 #include <linux/types.h>
 #include <linux/version.h>
+#include <linux/lsm_audit.h>
+#include <linux/preempt.h>
 
 #include "../klog.h" // IWYU pragma: keep
 #include "selinux.h"
 #include "sepolicy.h"
 #include "ss/services.h"
-#include "linux/lsm_audit.h"
 #include "xfrm.h"
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
@@ -42,7 +43,10 @@ void apply_kernelsu_rules()
 		pr_info("SELinux permissive or disabled, apply rules!\n");
 	}
 	
-	smp_mb();
+	if (preemptible()) {
+		rcu_read_lock();
+	} else
+		smp_mb();
 
 	struct policydb *db = get_policydb();
 
@@ -136,7 +140,10 @@ void apply_kernelsu_rules()
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
 	ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
-	smp_mb();
+	if (preemptible()) {
+		rcu_read_unlock();
+	} else
+		smp_mb();
 }
 
 #define MAX_SEPOL_LEN 128
